@@ -18,14 +18,29 @@
  * @author opensource@google.com
  * @license Apache License, Version 2.0.
  */
+let showImage = true;
+
 function handleRequest(request, sender, cb) {
-  // Simply relay the request. This lets content.js talk to bar.js.
-  chrome.tabs.sendMessage(sender.tab.id, request, cb);
-  return true;
+  if (request.type === 'testBackground') {
+    if (cb) cb({ok: true});
+    return true;
+  }
+  if (request.type === 'updateConfig') {
+    if (request.showImage !== undefined) {
+      showImage = request.showImage;
+    }
+    if (cb) cb({ok: true});
+    return true;
+  }
+  if (sender.tab && sender.tab.id) {
+    chrome.tabs.sendMessage(sender.tab.id, request, cb);
+    return true;
+  }
+  return false;
 }
 chrome.runtime.onMessage.addListener(handleRequest);
 
-chrome.browserAction.onClicked.addListener(function(tab) {
+chrome.action.onClicked.addListener(function(tab) {
   chrome.tabs.sendMessage(tab.id, {type: 'toggleBar'});
 });
 

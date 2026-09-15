@@ -12,36 +12,33 @@ $(function() {
 
 });
 
-// 打开后台页
+// 打开后台页（V3 中无 background.html，改为打开其他页面）
 $('#open_background').click(e => {
-	window.open(chrome.extension.getURL('background.html'));
+	window.open(chrome.runtime.getURL('index.html'));
 });
 
-// 调用后台JS
+// 调用后台JS（V3 中通过消息通信）
 $('#invoke_background_js').click(e => {
-	var bg = chrome.extension.getBackgroundPage();
-	bg.testBackground();
+	chrome.runtime.sendMessage({type: 'testBackground'}, function(response) {
+		alert('已调用后台方法');
+	});
 });
 
-// 获取后台页标题
+// 获取后台页标题（V3 中 Service Worker 无 document，此功能废弃）
 $('#get_background_title').click(e => {
-	var bg = chrome.extension.getBackgroundPage();
-	alert(bg.document.title);
+	alert('Manifest V3 中 Service Worker 无 document 对象，此功能不可用');
 });
 
-// 设置后台页标题
+// 设置后台页标题（V3 中 Service Worker 无 document，此功能废弃）
 $('#set_background_title').click(e => {
-	var title = prompt('请输入background的新标题：', '这是新标题');
-	var bg = chrome.extension.getBackgroundPage();
-	bg.document.title = title;
-	alert('修改成功！');
+	alert('Manifest V3 中 Service Worker 无 document 对象，此功能不可用');
 });
 
 // 自定义窗体大小
 $('#custom_window_size').click(() => {
 	chrome.windows.getCurrent({}, (currentWindow) => {
 		var startLeft = 10;
-		chrome.windows.update(currentWindow.id, 
+		chrome.windows.update(currentWindow.id,
 		{
 			left: startLeft * 10,
 			top: 100,
@@ -58,7 +55,7 @@ $('#custom_window_size').click(() => {
 // 最大化窗口
 $('#max_current_window').click(() => {
 	chrome.windows.getCurrent({}, (currentWindow) => {
-		// state: 可选 'minimized', 'maximized' and 'fullscreen' 
+		// state: 可选 'minimized', 'maximized' and 'fullscreen'
 		chrome.windows.update(currentWindow.id, {state: 'maximized'});
 	});
 });
@@ -67,7 +64,7 @@ $('#max_current_window').click(() => {
 // 最小化窗口
 $('#min_current_window').click(() => {
 	chrome.windows.getCurrent({}, (currentWindow) => {
-		// state: 可选 'minimized', 'maximized' and 'fullscreen' 
+		// state: 可选 'minimized', 'maximized' and 'fullscreen'
 		chrome.windows.update(currentWindow.id, {state: 'minimized'});
 	});
 });
@@ -176,7 +173,11 @@ function executeScriptToCurrentTab(code)
 {
 	getCurrentTabId((tabId) =>
 	{
-		chrome.tabs.executeScript(tabId, {code: code});
+		chrome.scripting.executeScript({
+			target: {tabId: tabId},
+			func: (codeStr) => { eval(codeStr); },
+			args: [code]
+		});
 	});
 }
 
@@ -195,14 +196,14 @@ $('#update_font_size').click(() => {
 
 // 显示badge
 $('#show_badge').click(() => {
-	chrome.browserAction.setBadgeText({text: 'New'});
-	chrome.browserAction.setBadgeBackgroundColor({color: [255, 0, 0, 255]});
+	chrome.action.setBadgeText({text: 'New'});
+	chrome.action.setBadgeBackgroundColor({color: [255, 0, 0, 255]});
 });
 
 // 隐藏badge
 $('#hide_badge').click(() => {
-	chrome.browserAction.setBadgeText({text: ''});
-	chrome.browserAction.setBadgeBackgroundColor({color: [0, 0, 0, 0]});
+	chrome.action.setBadgeText({text: ''});
+	chrome.action.setBadgeBackgroundColor({color: [0, 0, 0, 0]});
 });
 
 // 显示桌面通知
